@@ -2,17 +2,20 @@ import pygame
 import random
 
 pygame.font.init()
+pygame.font.get_fonts()
 pygame.init()
 
 # GLOBALS VARS
-s_width = 800
-s_height = 700
+screen_width = 800
+screen_height = 800
 play_width = 300  # meaning 300 // 10 = 30 width per block
 play_height = 600  # meaning 600 // 20 = 30 height per block
 block_size = 30
+panda1 = pygame.image.load('/home/kasia/studia/Python/pajton/src/happy-panda.jpg')
+panda2 = pygame.image.load('/home/kasia/studia/Python/pajton/src/sad-panda.jpg')
 
-top_left_x = (s_width - play_width) // 2
-top_left_y = s_height - play_height
+top_left_x = (screen_width - play_width) // 2
+top_left_y = (screen_height - play_height) // 2+50
 
 # SHAPE FORMATS
 
@@ -118,12 +121,49 @@ T = [['.....',
       '..0..',
       '.....']]
 
+E1 = [['.....',
+      '.....',
+      '0....',
+      '0....',
+      '.....']]
+
+E2 = [['.....',
+      '.....',
+      '..0..',
+      '..00.',
+      '.....']]
+
+E3 = [['.....',
+      '.....',
+      '..0..',
+      '..0..',
+      '.....']]
+
+E4 = [['.....',
+      '.....',
+      '..,.0',
+      '...,0',
+      '.....']]
+
+E5 = [['.....',
+      '.....',
+      '....0',
+      '...00',
+      '.....']]
+
+E6 = [['.....',
+      '.....',
+      '.....',
+      '000..',
+      '.....']]
+
 shapes = [S, Z, I, O, J, L, T]
-shape_colors = [(0, 255, 0), (255, 0, 0), (0, 255, 255), (255, 255, 0), (255, 165, 0), (0, 0, 255), (128, 0, 128)]
+destroyed = [E1, E2, E3, E4, E5, E6]
+shape_colors = [(255, 153, 153), (204, 153, 255), (153, 204, 255), (187, 255, 153), (255, 255, 102), (255, 179, 102), (179, 255, 204)]
 # index 0 - 6 represent shape
 
 
-class Piece(object):  # *
+class Piece(object):  
     def __init__(self, x, y, shape):
         self.x = x
         self.y = y
@@ -143,7 +183,7 @@ def create_grid(locked_pos={}):  # *
     return grid
 
 
-def convert_shape_format(shape):
+def rotate_shape(shape):
     positions = []
     format = shape.shape[shape.rotation % len(shape.shape)]
 
@@ -163,7 +203,7 @@ def valid_space(shape, grid):
     accepted_pos = [[(j, i) for j in range(10) if grid[i][j] == (0,0,0)] for i in range(20)]
     accepted_pos = [j for sub in accepted_pos for j in sub]
 
-    formatted = convert_shape_format(shape)
+    formatted = rotate_shape(shape)
 
     for pos in formatted:
         if pos not in accepted_pos:
@@ -177,7 +217,7 @@ def check_lost(positions):
         x, y = pos
         if y < 1:
             pygame.mixer.music.stop()
-            pygame.mixer.Sound('GameOver.wav').play()
+            pygame.mixer.Sound('/home/kasia/studia/Python/pajton/src/GameOver.wav').play()
             return True
 
     return False
@@ -187,8 +227,8 @@ def get_shape():
     return Piece(5, 0, random.choice(shapes))
 
 
-def draw_text_middle(surface, text, size, color):
-    font = pygame.font.SysFont("comicsans", size, bold=True)
+def draw_middle(surface, text, size, color):
+    font = pygame.font.SysFont('Comic Sans MS', size, bold=True)
     label = font.render(text, 1, color)
 
     surface.blit(label, (top_left_x + play_width /2 - (label.get_width()/2), top_left_y + play_height/2 - label.get_height()/2))
@@ -204,7 +244,7 @@ def draw_grid(surface, grid):
             pygame.draw.line(surface, (128, 128, 128), (sx + j*block_size, sy),(sx + j*block_size, sy + play_height))
 
 
-def clear_rows(grid, locked):
+def clear_row(grid, locked):
 
     inc = 0
     for i in range(len(grid)-1, -1, -1):
@@ -229,8 +269,8 @@ def clear_rows(grid, locked):
 
 
 def draw_next_shape(shape, surface):
-    font = pygame.font.SysFont('comicsans', 30)
-    label = font.render('Next Shape', 1, (255,255,255))
+    font = pygame.font.SysFont('Comic Sans MS', 30)
+    label = font.render('Next Shape', 1, (204,204,204))
 
     sx = top_left_x + play_width + 50
     sy = top_left_y + play_height/2 - 100
@@ -244,58 +284,58 @@ def draw_next_shape(shape, surface):
 
     surface.blit(label, (sx + 10, sy - 30))
 
-
-def update_score(nscore):
-    score = max_score()
-
-    with open('scores.txt', 'w') as f:
-        if int(score) > nscore:
-            f.write(str(score))
-        else:
-            f.write(str(nscore))
-
-
 def max_score():
-    with open('scores.txt', 'r') as f:
+    with open('/home/kasia/studia/Python/pajton/src/scores.txt', 'r') as f:
         lines = f.readlines()
         score = lines[0].strip()
 
     return score
 
 
+def update_score(nscore):
+    score = max_score()
+
+    with open('/home/kasia/studia/Python/pajton/src/scores.txt', 'w') as f:
+        if int(score) > nscore:
+            f.write(str(score))
+        else:
+            f.write(str(nscore))
+
+
 def draw_window(surface, grid, score=0, last_score = 0):
-    surface.fill((0, 0, 0))
+    surface.fill((80, 80, 80))
 
     pygame.font.init()
-    font = pygame.font.SysFont('comicsans', 60)
-    label = font.render('Tetris', 1, (255, 255, 255))
+    font = pygame.font.SysFont('Comic Sans MS', 80)
+    label = font.render('Tetris', 1, (204,204,204))
 
-    surface.blit(label, (top_left_x + play_width / 2 - (label.get_width() / 2), 30))
+    surface.blit(label, (top_left_x + play_width / 2 - (label.get_width() / 2), 50))
 
     # current score
-    font = pygame.font.SysFont('comicsans', 30)
-    label = font.render('Score: ' + str(score), 1, (255,255,255))
+    font = pygame.font.SysFont('Comic Sans MS', 30)
+    label = font.render('Score: ' + str(score), 1, (204,204,204))
 
     sx = top_left_x + play_width + 50
     sy = top_left_y + play_height/2 - 100
 
     surface.blit(label, (sx + 20, sy + 160))
     # last score
-    label = font.render('High Score: ' + last_score, 1, (255,255,255))
+    label = font.render('High Score: ' + last_score, 1, (204,204,204))
 
     sx = top_left_x - 200
     sy = top_left_y + 200
 
-    surface.blit(label, (sx + 20, sy + 160))
+    surface.blit(label, (sx + 20, sy + 80))
 
     for i in range(len(grid)):
         for j in range(len(grid[i])):
             pygame.draw.rect(surface, grid[i][j], (top_left_x + j*block_size, top_left_y + i*block_size, block_size, block_size), 0)
 
-    pygame.draw.rect(surface, (255, 0, 0), (top_left_x, top_left_y, play_width, play_height), 5)
+    pygame.draw.rect(surface, (200,200,200), (top_left_x, top_left_y, play_width, play_height), 5)
 
     draw_grid(surface, grid)
     #pygame.display.update()
+
 
 
 def main(win):  # *
@@ -313,7 +353,7 @@ def main(win):  # *
     level_time = 0
     score = 0
 
-    pygame.mixer.music.load('Tetris.mp3')
+    pygame.mixer.music.load('/home/kasia/studia/Python/pajton/src/Tetris.mp3')
     pygame.mixer.music.play(-1)
 
     while run:
@@ -356,8 +396,18 @@ def main(win):  # *
                     current_piece.rotation += 1
                     if not(valid_space(current_piece, grid)):
                         current_piece.rotation -= 1
+                if event.key == pygame.K_SPACE:
+                    if current_piece.y < 5:
+                        current_piece.shape = random.choice(destroyed)
+                        while (valid_space(current_piece, grid)):
+                            current_piece.y += 1
+                        current_piece.y -= 1
+                    else:
+                        while (valid_space(current_piece, grid)):
+                            current_piece.y += 1
+                        current_piece.y -= 1
 
-        shape_pos = convert_shape_format(current_piece)
+        shape_pos = rotate_shape(current_piece)
 
         for i in range(len(shape_pos)):
             x, y = shape_pos[i]
@@ -371,14 +421,15 @@ def main(win):  # *
             current_piece = next_piece
             next_piece = get_shape()
             change_piece = False
-            score += clear_rows(grid, locked_positions) * 10
+            score += clear_row(grid, locked_positions) * 10
 
         draw_window(win, grid, score, last_score)
         draw_next_shape(next_piece, win)
         pygame.display.update()
 
         if check_lost(locked_positions):
-            draw_text_middle(win, "YOU LOST!", 80, (255,255,255))
+            win.blit(panda2, (0,00))
+            draw_middle(win, "YOU LOST!", 80, (255,255,255))
             pygame.display.update()
             pygame.time.delay(1500)
             run = False
@@ -388,8 +439,9 @@ def main(win):  # *
 def main_menu(win):  # *
     run = True
     while run:
-        win.fill((0,0,0))
-        draw_text_middle(win, 'Press Any Key To Play', 60, (255,255,255))
+        win.fill((80,80,80))
+        win.blit(panda1, (0,0))
+        draw_middle(win, 'Press Any Key To Play', 60, (255,255,255))
         pygame.display.update()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -400,6 +452,6 @@ def main_menu(win):  # *
     pygame.display.quit()
 
 
-win = pygame.display.set_mode((s_width, s_height))
+win = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Tetris')
 main_menu(win)
